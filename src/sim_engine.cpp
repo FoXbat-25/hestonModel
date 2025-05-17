@@ -5,6 +5,7 @@
 #include <random>
 #include <chrono>
 #include <iomanip>
+#include <constants.h>
 
 using namespace std;
 
@@ -23,6 +24,7 @@ vector<double> rng(double mean, double dt, int N){
 }
 
 vector <double> linspace(double start, double end, int num) {
+    
     vector <double> result;
 
     if (num == 0){
@@ -41,6 +43,8 @@ vector <double> linspace(double start, double end, int num) {
 
     return result;
 }
+
+const std::vector <double> t = linspace(0.0, T, N+1);
 
 void plott(const vector<double>& x, const vector<double>& y, const string& title) {
     FILE* gnuplotPipe = popen("gnuplot -persistent", "w");
@@ -120,20 +124,19 @@ double price_Kplus_prob(const std::vector<double>& prices, double K){
     return static_cast<double> (count)/prices.size();
 }
 
-int main(){
+all_S_v gbm_sim(){
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    float T = 1.0; //total time
-    int N = 1000; // time steps
-    double dt = T/N;
-    vector <double> t = linspace(0.0, T, N+1);
-    float mu = 0.1; //expected return
-    float v0 = 0.1;//Initial volatility
-    float kappa = 3.0; //Mean reversion pullback force
-    float theta = 0.15; //Long term volatility
-    float sigma = 0.1; //Volatility
-    double K = 110.0; //Price above ?
+    // float T = 1.0; //total time
+    // int N = 1000; // time steps
+    // double dt = T/N;
+    // float mu = 0.1; //expected return
+    // float v0 = 0.1;//Initial volatility
+    // float kappa = 3.0; //Mean reversion pullback force
+    // float theta = 0.15; //Long term volatility
+    // float sigma = 0.1; //Volatility
+    // double K = 110.0; //Price above ?
 
     // vector<double> dw1 = rng(0.0, dt, N);
     // vector<double> dw2 = rng(0.0, dt, N);
@@ -144,7 +147,7 @@ int main(){
     // S[0] = 100.0;
     // v[0] = v0;
 
-    int num_paths = 100;
+    //int num_paths = 100;
     vector<vector<double>> all_S(num_paths, vector<double>(N+1));
     vector<vector<double>> all_v(num_paths, vector<double>(N+1));
 
@@ -161,8 +164,8 @@ int main(){
         }
     }
 
-    plottMultiple(t, all_S, "Monte Carlo Paths: Stock Price");
-    plottMultiple(t, all_v, "Monte Carlo Paths: Volatility");
+    // plottMultiple(t, all_S, "Monte Carlo Paths: Stock Price");
+    // plottMultiple(t, all_v, "Monte Carlo Paths: Volatility");
 
     PriceStats stats = calc_fmetrics(num_paths, N, all_S);
     std::cout << "Average final price: " << stats.avg << std::endl;
@@ -175,7 +178,10 @@ int main(){
     //Timer ends
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = end - start;
-    std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
+    std::cout << "GBM execution time: " << duration.count() << " ms" << std::endl;
 
-    return 0;
+    all_S_v gbm_stats;
+    gbm_stats.S = all_S;
+    gbm_stats.v = all_v;
+    return gbm_stats;
 }
