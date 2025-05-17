@@ -75,7 +75,7 @@ void plottMultiple(const vector<double>& x, const vector<vector<double>>& y_seri
 
     for (size_t i = 0; i < y_series.size(); ++i) {
         if (i > 0) fprintf(gnuplotPipe, ", ");
-        fprintf(gnuplotPipe, "'-' with lines title 'Path %lu'", i+1);
+        fprintf(gnuplotPipe, "'-' with lines notitle"); //title 'Path %lu'", i+1
     }
     fprintf(gnuplotPipe, "\n");
 
@@ -144,7 +144,7 @@ int main(){
     // S[0] = 100.0;
     // v[0] = v0;
 
-    int num_paths = 10;
+    int num_paths = 100;
     vector<vector<double>> all_S(num_paths, vector<double>(N+1));
     vector<vector<double>> all_v(num_paths, vector<double>(N+1));
 
