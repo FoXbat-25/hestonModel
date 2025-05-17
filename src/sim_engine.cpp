@@ -36,7 +36,7 @@ vector <double> linspace(double start, double end, int num) {
         return result;
     }
 
-    double step = (end - start)/(num);
+    double step = (end - start)/(num -1);
     for (int i = 0; i < num; ++i){
         result.push_back(start + i*step);
     }
@@ -127,27 +127,7 @@ double price_Kplus_prob(const std::vector<double>& prices, double K){
 all_S_v gbm_sim(){
 
     auto start = std::chrono::high_resolution_clock::now();
-
-    // float T = 1.0; //total time
-    // int N = 1000; // time steps
-    // double dt = T/N;
-    // float mu = 0.1; //expected return
-    // float v0 = 0.1;//Initial volatility
-    // float kappa = 3.0; //Mean reversion pullback force
-    // float theta = 0.15; //Long term volatility
-    // float sigma = 0.1; //Volatility
-    // double K = 110.0; //Price above ?
-
-    // vector<double> dw1 = rng(0.0, dt, N);
-    // vector<double> dw2 = rng(0.0, dt, N);
-
-    // vector<double> S(N+1);
-    // vector<double> v(N+1);
-
-    // S[0] = 100.0;
-    // v[0] = v0;
-
-    //int num_paths = 100;
+    
     vector<vector<double>> all_S(num_paths, vector<double>(N+1));
     vector<vector<double>> all_v(num_paths, vector<double>(N+1));
 
@@ -155,7 +135,7 @@ all_S_v gbm_sim(){
         vector<double> dw1 = rng(0.0, dt, N);
         vector<double> dw2 = rng(0.0, dt, N);
 
-        all_S[p][0] = 100.0;
+        all_S[p][0] = S0;
         all_v[p][0] = v0;
 
         for (int i = 1; i <= N; ++i) {
@@ -163,9 +143,6 @@ all_S_v gbm_sim(){
             all_S[p][i] = all_S[p][i-1] * (1 + mu * dt + sqrt(all_v[p][i-1]) * dw2[i-1]);
         }
     }
-
-    // plottMultiple(t, all_S, "Monte Carlo Paths: Stock Price");
-    // plottMultiple(t, all_v, "Monte Carlo Paths: Volatility");
 
     PriceStats stats = calc_fmetrics(num_paths, N, all_S);
     std::cout << "Average final price: " << stats.avg << std::endl;

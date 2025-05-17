@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-
+std::vector <double> linspace(double start, double end, int num);
 void plott(const std::vector<double>& x, const std::vector<double>& y, const std::string& title);
 void plottMultiple(const std::vector<double>& x, const std::vector<std::vector<double>>& y_series, const std::string& title);
 struct all_S_v{
