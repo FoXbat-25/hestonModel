@@ -6,4 +6,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(include)
 
-add_executable(HestonModel src/main.cpp)
+add_executable(HestonModel src/hestonModel.cpp)
