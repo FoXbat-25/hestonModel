@@ -60,6 +60,34 @@ void plott(const vector<double>& x, const vector<double>& y, const string& title
     pclose(gnuplotPipe);
 }
 
+void plottMultiple(const vector<double>& x, const vector<vector<double>>& y_series, const string& title) {
+    FILE* gnuplotPipe = popen("gnuplot -persistent", "w");
+
+    if (!gnuplotPipe) {
+        cerr << "Couldn't open gnuplot.\n";
+        return;
+    }
+
+    fprintf(gnuplotPipe, "set title '%s'\n", title.c_str());
+    fprintf(gnuplotPipe, "plot ");
+
+    for (size_t i = 0; i < y_series.size(); ++i) {
+        if (i > 0) fprintf(gnuplotPipe, ", ");
+        fprintf(gnuplotPipe, "'-' with lines title 'Path %lu'", i+1);
+    }
+    fprintf(gnuplotPipe, "\n");
+
+    for (const auto& y : y_series) {
+        for (size_t j = 0; j < x.size(); ++j) {
+            fprintf(gnuplotPipe, "%f %f\n", x[j], y[j]);
+        }
+        fprintf(gnuplotPipe, "e\n");
+    }
+
+    fflush(gnuplotPipe);
+    pclose(gnuplotPipe);
+}
+
 int main(){
     float T = 1.0; //total time
     int N = 1000; // time steps
@@ -80,14 +108,25 @@ int main(){
     S[0] = 100.0;
     v[0] = v0;
 
-    for (int i =1; i<=N; ++i){
-        v[i] = v[i-1] + kappa * (theta - v[i-1]) * dt + sigma * sqrt(v[i-1]) * dw1[i-1];
-        S[i] = S[i-1] * (1 + (mu * dt) + (sqrt(v[i-1]) * dw1[i-1]));   
+    int num_paths = 10;
+    vector<vector<double>> all_S(num_paths, vector<double>(N+1));
+    vector<vector<double>> all_v(num_paths, vector<double>(N+1));
+
+    for (int p = 0; p < num_paths; ++p) {
+        vector<double> dw1 = rng(0.0, dt, N);
+        vector<double> dw2 = rng(0.0, dt, N);
+
+        all_S[p][0] = 100.0;
+        all_v[p][0] = v0;
+
+        for (int i = 1; i <= N; ++i) {
+            all_v[p][i] = all_v[p][i-1] + kappa * (theta - all_v[p][i-1]) * dt + sigma * sqrt(all_v[p][i-1]) * dw1[i-1];
+            all_S[p][i] = all_S[p][i-1] * (1 + mu * dt + sqrt(all_v[p][i-1]) * dw2[i-1]);
+        }
     }
 
-    plott(t, S, "Stock price dynamics");
-    plott(t, v, "Volatility dynamics");
+    plottMultiple(t, all_S, "Monte Carlo Paths: Stock Price");
+    plottMultiple(t, all_v, "Monte Carlo Paths: Volatility");
 
     return 0;
-
 }
