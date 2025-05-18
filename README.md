@@ -68,3 +68,7 @@ No arbitrage opportunities: There are no risk-free arbitrage opportunities in th
 Constant risk-free rate: The risk-free interest rate is constant and known.
 Constant parameters: The parameters of the model (such as mean reversion rate, long-term average volatility, volatility of volatility, and correlation) are assumed to be constant over time.
 However, it's important to note that in reality, some of these assumptions may not hold true, and adjustments may be necessary when applying the model to real-world situations.
+
+## Integration
+
+Since C++ doesn't have its own itegration function, trapezoidal function to approximate the integral has been used.

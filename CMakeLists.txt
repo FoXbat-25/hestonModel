@@ -9,4 +9,5 @@ include_directories(include)
 add_executable(HestonModel 
     src/main.cpp
     src/sim_engine.cpp
+    src/option_pricing.cpp
 )

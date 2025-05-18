@@ -8,7 +8,7 @@ extern const std::vector<double> t;
 extern const std::complex<double> z1;
 constexpr double S0 = 100.0;
 constexpr double r = 0.07; //risk_free_rate
-constexpr int num_paths = 100;
+constexpr int num_paths = 1000;
 constexpr double T = 1.0; //total time
 constexpr int N = 1000; // time steps
 constexpr double dt = T/N;

@@ -124,6 +124,16 @@ double price_Kplus_prob(const std::vector<double>& prices, double K){
     return static_cast<double> (count)/prices.size();
 }
 
+double trap_integration(std::function<double(double)> f, double a, double b, int n){
+    double h = (b - a)/n;
+    double summ_ht = 0.5 * (f(a) + f(b)); //Area under the curve
+    for (int i=1; i<=n; ++i){
+        summ_ht += f(a + i *h);
+    }
+    double auc = summ_ht * h;
+    return auc;
+}
+
 all_S_v gbm_sim(){
 
     auto start = std::chrono::high_resolution_clock::now();
