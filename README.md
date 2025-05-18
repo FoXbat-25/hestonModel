@@ -71,4 +71,4 @@ However, it's important to note that in reality, some of these assumptions may n
 
 ## Integration
 
-Since C++ doesn't have its own itegration function, trapezoidal function to approximate the integral has been used.
+Since C++ doesn't have its own itegration function, trapezoidal function to approximate the integral can be used. However, we have used 32-point based Gauss–Laguerre quadrature integral approximations for the current model.
