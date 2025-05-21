@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <functional>
 
 std::vector <double> linspace(double start, double end, int num);
 void plott(const std::vector<double>& x, const std::vector<double>& y, const std::string& title);

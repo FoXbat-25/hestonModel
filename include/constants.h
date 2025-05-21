@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <sim_engine.h>
+#include <complex>
 
 extern const std::vector<double> t;
 extern const std::complex<double> z1;

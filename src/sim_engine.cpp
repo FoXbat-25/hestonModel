@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iomanip>
 #include <constants.h>
+#include <functional>
 
 using namespace std;
 
