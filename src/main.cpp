@@ -10,11 +10,12 @@ int main() {
 
     auto start = std::chrono::high_resolution_clock::now();
     cout<< "Initiating heston-model"<<endl;
-    all_S_v sim = gbm_sim();
-    plottMultiple(t, sim.S, "Monte Carlo Paths: Stock Price");
-    plottMultiple(t, sim.v, "Monte Carlo Paths: Volatility");
+    // all_S_v sim = gbm_sim();
+    // plottMultiple(t, sim.S, "Monte Carlo Paths: Stock Price");
+    // plottMultiple(t, sim.v, "Monte Carlo Paths: Volatility");
 
-    prices opt_price = heston_prices_parellel();
+    prices opt_price = price();
+    // cout << opt_price;
     double call_option = opt_price.call;
     double put_option = opt_price.put;
 

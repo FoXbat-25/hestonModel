@@ -7,5 +7,6 @@ struct prices{
 };
 
 prices heston_prices_parellel();
-
+double heston_call_price();
+prices price();
 #endif

@@ -15,9 +15,11 @@ constexpr double dt = T/N;
 constexpr double mu = 0.1; //expected return
 constexpr double v0 = 0.05;//Initial volatility
 constexpr double kappa = 2.0; //Mean reversion pullback force
-constexpr double theta = 0.15; //Long term volatility
-constexpr double sigma = 0.3; //Volatility of volatility
+constexpr double theta = 0.04; //Long term volatility
+constexpr double sigma = 0.1; //Volatility of volatility
 constexpr double K = 100.0; //Strike price
 constexpr double rho = -0.5; //Coorelation coefficient
+constexpr double lambda = 0; //lamda
+constexpr double tau = T;
 
 #endif
