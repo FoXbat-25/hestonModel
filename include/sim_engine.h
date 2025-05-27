@@ -13,6 +13,7 @@ struct all_S_v{
     std::vector<std::vector<double>> S;
     std::vector<std::vector<double>> v;
 };
+double simpson(std::function<double(double)> f, double a, double b, int n);
 all_S_v gbm_sim();
 
 

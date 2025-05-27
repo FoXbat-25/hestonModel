@@ -4,9 +4,20 @@ project(hestonModel)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(include)
+include_directories(
+    include
+    /opt/homebrew/include
+)
+
+# Link directories for FFTW
+link_directories(
+    /opt/homebrew/lib
+)
+
 
 add_executable(HestonModel
+    src/opt_price.cpp
     src/sim_engine.cpp
-    src/text.cpp
 )
+
+target_link_libraries(HestonModel fftw3)

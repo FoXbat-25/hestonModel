@@ -15,13 +15,16 @@ int main() {
     // plottMultiple(t, sim.S, "Monte Carlo Paths: Stock Price");
     // plottMultiple(t, sim.v, "Monte Carlo Paths: Volatility");
 
-    prices opt_price = price();
+    pairr opt_price = heston_prices_parellel();
+    cout << "call price " <<opt_price.call << endl;
     // cout << opt_price;
-    double call_option = opt_price.call;
-    double put_option = opt_price.put;
+    // double call_option = opt_price.call;
+    // double put_option = opt_price.put;
 
-    std::cout << "Call option is priced at " << call_option << endl;
-    std::cout << "Put option is priced at " << put_option << endl;
+    // std::cout << "Call option is priced at " << call_option << endl;
+    // std::cout << "Put option is priced at " << put_option << endl;
+
+
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = end - start;

@@ -1,12 +1,12 @@
 #ifndef OPTION_PRICING_H
 #define OPTION_PRICING_H
 
-struct prices{
-    double call;
-    double put;
+struct pairr{
+    double first;
+    double second;
 };
 
-prices heston_prices_parellel();
+pairr heston_prices_parellel();
 double heston_call_price();
-prices price();
+pairr price();
 #endif
