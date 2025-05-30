@@ -50,10 +50,13 @@ std::complex<double> phi_2(complex<double> u){
     complex<double> beta = b2 - (rho * u * i * sigma);
 
     complex<double> d = sqrt( (beta * beta) + (sigma * sigma * ( (u * i) + (u * u) )));
-    complex<double> g = (beta + d) / (beta - d);
+    complex<double> g = (beta - d) / (beta + d);
 
-    complex<double> C = (r * u * i * tau) + ((a/(sigma * sigma)) * (((beta + d) * tau) - (2.0 * log ((1.0 - (g * exp(d*tau))) / (1.0 - g)))));
-    complex<double> D = ((beta + d)/(sigma * sigma)) * (( 1.0 - exp( d * tau )) / ( 1.0 - (g * exp(d * tau))));
+    // if (std::abs(g) > 1.0)
+    // g *= 0.99999999 / std::abs(g); 
+
+    complex<double> C = (r * u * i * tau) + ((a/(sigma * sigma)) * (((beta - d) * tau) - (2.0 * log ((1.0 - (g * exp(-d*tau))) / (1.0 - g)))));
+    complex<double> D = ((beta - d)/(sigma * sigma)) * (( 1.0 - exp( -d * tau )) / ( 1.0 - (g * exp(-d * tau))));
 
     return exp(C + D * v0 + i * u * std::log(S0));
 }
@@ -100,76 +103,91 @@ pairr gaussLaguerreProb() {
 }
 
 double callFFT(double K_target){
-    const int N = 1024;  // Number of points for FFT-like integration
-    const double alpha = 1.9;  // Damping parameter
-    const double eta = 0.5;   // Grid spacing
+    const int N = 4096; 
+    const double alpha = 1.5; 
+    const double eta = 0.25; 
     const double l = 2.0 * M_PI / (N * eta);
-    double b = (N * l) / 2.0;
+    double b = M_PI / eta;
+    int m = N;
     
     std::complex<double> i(0.0, 1.0);
-    std::vector<std::complex<double>> fft_input(N);
+    std::vector<std::complex<double>> fft_input(m);
+    std::vector<std::complex<double>> psii(m);
+    std::vector<std::complex<double>> integrandd(m);
 
-    for (int j = 0; j<N; ++j){
+    for (int j = 0; j<m; ++j){
         double v = eta * j;
         std::complex<double> u = v - i * (alpha + 1.0);
         std::complex<double> psi = std::exp(-r * T) * phi_2(u);
         std::complex<double> integrand = (std::exp(i * v * b) * psi )/ 
                                         ((alpha * alpha) + alpha - (v * v) + (i * (2.0 * alpha + 1.0) * v));
 
-                                        // std::cout << "j=" << j
-                                        // << ", v=" << v
-                                        // << ", u=" << u
-                                        // << ", psi=" << psi
-                                        // << ", integrand=" << integrand
-                                        // << "\n";
-
-        double simpson = (j == 0 || j == N - 1) ? 1.0 : ((j % 2 == 0) ? 2.0 : 4.0);
-        fft_input[j] = integrand * eta * simpson/3.0;            
+        double simpson = (j == 0 || j == m ) ? 1.0 : ((j % 2 == 0) ? 2.0 : 4.0);
+        fft_input[j] = integrand * eta * simpson/3.0;  
+        psii[j] = psi.real();
+        integrandd[j] = integrand;
     }
 
-    std::vector<std::complex<double>> fft_output(N);
-    fftw_complex* in = fftw_alloc_complex(N);
-    fftw_complex* out = fftw_alloc_complex(N);
+    std::vector<std::complex<double>> fft_output(m);
+    fftw_complex* in = fftw_alloc_complex(m);
+    fftw_complex* out = fftw_alloc_complex(m);
 
-    for (int j = 0; j < N; ++j) {
+    for (int j = 0; j < m; ++j) {
         in[j][0] = fft_input[j].real();
         in[j][1] = fft_input[j].imag();
     }
 
-    fftw_plan plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan plan = fftw_plan_dft_1d(m, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_execute(plan);
     fftw_destroy_plan(plan);
 
-    for (int j = 0; j < N; ++j) {
-        fft_output[j] = std::complex<double>(out[j][0], out[j][1]) / static_cast<double>(N);  // Normalize
+    for (int j = 0; j < m; ++j) {
+        fft_output[j] = std::complex<double>(out[j][0], out[j][1]) / static_cast<double>(m);
     }
 
     fftw_free(in);
     fftw_free(out);
 
-    std::vector<double> strikes(N);
-    std::vector<double> call_prices(N);
+    std::vector<double> strikes(m);
+    std::vector<double> call_prices(m);
+    std::vector<double> indxx(m);
 
-    for (int j = 0; j < N; ++j) {
-        double k = -b + j * l;  // log-strike
-        double K = std::exp(k);      // strike
+    for (int j = 0; j < m; ++j) {
+        double k = -b + j * l; 
+        double kk = std::exp(k + log(S0));   
 
-        std::complex<double> fprice = (std::exp(-alpha * k) * fft_output[j] / M_PI);
-        double price = fprice.real();
+        //double k = -b + j * lambda;
+        std::complex<double> damping = std::exp(-alpha * k);
+        double call_price = (damping * fft_output[j]).real() / M_PI;
 
-        strikes[j] = K;
-        call_prices[j] = price;
+        //indxx[j] = j;
+        strikes[j] = k;
+        call_prices[j] = call_price;
     }
 
     double log_K_target = std::log(K_target);
     double float_idx = (log_K_target + b) / l;
     int idx = static_cast<int>(std::floor(float_idx));
     if (idx < 0) idx = 0;
-    if (idx >= N - 1) idx = N - 2;
+    if (idx >= m - 1) idx = m - 2;
     double w = float_idx - idx;
     double price = (1 - w) * call_prices[idx] + w * call_prices[idx + 1];
 
-    plott(call_prices, strikes,"");
+    std::vector<double> fft_output_real(m);
+    std::vector<double> fft_input_real(m);
+    std::vector<double> intgrnd(m);
+    
+    for (int j = 0; j < m; ++j) {
+        fft_output_real[j] = fft_output[j].real();
+        fft_input_real[j] = fft_input[j].real();
+        indxx[j] = j;
+        intgrnd[j] = integrandd[j].imag();
+    }
+
+    plott(indxx, strikes, std::to_string(eta));
+    plott(indxx, fft_output_real, "FFT output real");
+    plott(indxx, fft_input_real, "FFT input real");
+    plott(indxx, intgrnd, "Integrand real");
 
     return price;
 }
@@ -434,18 +452,16 @@ int main(){
 
     double c = callFFT(100);
     cout<<c;
-
-    // int M = 20;
-    // std::vector<double> s(M);
-    // std::vector<double> t(M);
     // const int N = 4096;
+    // std::vector<double> s(50);
+    // std::vector<double> t(50);
     // const double alpha = 1.5;
     // const double eta = 0.25;
     // const double lambda = 2.0 * M_PI / (N * eta);
     // const double b = N * lambda / 2.0;
     // std::complex<double> im(0.0, 1.0);  
-    // for (int p=0; p<M; ++p){
-    //     double v = 0.25 * p;
+    // for (int p=0; p<50; ++p){
+    //     double v = eta * p;
     //     std::complex<double> u = v - i * (alpha + 1.0);
     //     std::complex<double> psi = std::exp(-r * T) * phi_2(u);
     //     std::complex<double> integrand = (std::exp(i * v * b) * psi )/ 

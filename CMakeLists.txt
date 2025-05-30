@@ -16,7 +16,7 @@ link_directories(
 
 
 add_executable(HestonModel
-    src/opt_price.cpp
+    src/hestonFFT.cpp
     src/sim_engine.cpp
 )
 
