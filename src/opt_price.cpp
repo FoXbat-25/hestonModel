@@ -50,13 +50,13 @@ std::complex<double> phi_2(complex<double> u){
     complex<double> beta = b2 - (rho * u * i * sigma);
 
     complex<double> d = sqrt( (beta * beta) + (sigma * sigma * ( (u * i) + (u * u) )));
-    complex<double> g = (beta - d) / (beta + d);
+    complex<double> g = (beta + d) / (beta - d);
 
     // if (std::abs(g) > 1.0)
     // g *= 0.99999999 / std::abs(g); 
 
-    complex<double> C = (r * u * i * tau) + ((a/(sigma * sigma)) * (((beta - d) * tau) - (2.0 * log ((1.0 - (g * exp(-d*tau))) / (1.0 - g)))));
-    complex<double> D = ((beta - d)/(sigma * sigma)) * (( 1.0 - exp( -d * tau )) / ( 1.0 - (g * exp(-d * tau))));
+    complex<double> C = (r * u * i * tau) + ((a/(sigma * sigma)) * (((beta + d) * tau) - (2.0 * log ((1.0 - (g * exp(d*tau))) / (1.0 - g)))));
+    complex<double> D = ((beta + d)/(sigma * sigma)) * (( 1.0 - exp( d * tau )) / ( 1.0 - (g * exp(d * tau))));
 
     return exp(C + D * v0 + i * u * std::log(S0));
 }
@@ -100,6 +100,22 @@ pairr gaussLaguerreProb() {
     opt_price.second = put_price;
     return opt_price;
     
+}
+
+double interpolate(const std::vector<double>& x, const std::vector<double>& y, double xi) {
+    if (xi <= x[0]) return y[0];
+    if (xi >= x.back()) return y.back();
+    
+    auto it = std::lower_bound(x.begin(), x.end(), xi);
+    int idx = std::distance(x.begin(), it);
+    
+    if (idx == 0) return y[0];
+    if (idx >= x.size()) return y.back();
+    
+    double x1 = x[idx-1], x2 = x[idx];
+    double y1 = y[idx-1], y2 = y[idx];
+    
+    return y1 + (y2 - y1) * (xi - x1) / (x2 - x1);
 }
 
 double callFFT(double K_target){
@@ -154,14 +170,11 @@ double callFFT(double K_target){
 
     for (int j = 0; j < m; ++j) {
         double k = -b + j * l; 
-        double kk = std::exp(k + log(S0));   
+        double K = std::exp(k + log(S0));   
 
-        //double k = -b + j * lambda;
-        std::complex<double> damping = std::exp(-alpha * k);
-        double call_price = (damping * fft_output[j]).real() / M_PI;
+        double call_price = (std::exp(-alpha * k) * fft_output[j]).real() / M_PI;
 
-        //indxx[j] = j;
-        strikes[j] = k;
+        strikes[j] = K;
         call_prices[j] = call_price;
     }
 
@@ -172,6 +185,8 @@ double callFFT(double K_target){
     if (idx >= m - 1) idx = m - 2;
     double w = float_idx - idx;
     double price = (1 - w) * call_prices[idx] + w * call_prices[idx + 1];
+
+    double call_price = interpolate(strikes, call_prices, K_target);
 
     std::vector<double> fft_output_real(m);
     std::vector<double> fft_input_real(m);
@@ -189,7 +204,7 @@ double callFFT(double K_target){
     plott(indxx, fft_input_real, "FFT input real");
     plott(indxx, intgrnd, "Integrand real");
 
-    return price;
+    return call_price;
 }
 
 // First, let's add a debug version to check intermediate values
